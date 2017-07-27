@@ -1,0 +1,3 @@
+!!file.WurstProjectConfig
+dependencies: ['https://github.com/Frotty/wurstStdlib2', 'https://github.com/Frotty/Frentity']
+releaseName: myRelease.w3x
