@@ -1,0 +1,39 @@
+package Agent
+import public Entity
+import public initlater StateMachine
+
+public class OrderTelegram extends Telegram
+	string order
+
+	construct(Telegraph originator, string order)
+		super(originator, originator, 0)
+		this.order = order
+
+
+public class Agent extends UnitEntity
+	StateMachine behaviour
+	real energy = 100
+	FText status
+
+	construct(unit existing, State globalState, State startState)
+		super(existing)
+		deactivate()
+		status = createCenterFText(pos+vec3(0,0,100), "[]", 10)
+		behaviour = new StateMachine(this, globalState, startState)
+		EventListener.add(actor, EVENT_PLAYER_UNIT_ISSUED_ORDER, () -> onOrder())
+		EventListener.add(actor, EVENT_PLAYER_UNIT_ISSUED_POINT_ORDER, () -> onOrder())
+		EventListener.add(actor, EVENT_PLAYER_UNIT_ISSUED_TARGET_ORDER, () -> onOrder())
+
+	override function slowUpdate()
+		behaviour.update()
+		status.tt.setPos(getPos())
+		
+	function onOrder()
+		behaviour.handleMessage(new OrderTelegram(behaviour, OrderId2String(GetIssuedOrderId())))
+
+	function setStatus(string msg)
+		status.tt.setText(msg, 10)
+
+	ondestroy
+		destroy behaviour
+		destroy status

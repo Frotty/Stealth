@@ -1,0 +1,18 @@
+package Telegram
+import GameTimer
+
+public interface Telegraph
+	function handleMessage(Telegram msg) returns boolean
+
+public class Telegram
+	Telegraph sender
+	Telegraph receiver
+	int messageType
+	int returnReceiptStatus = 0
+	real timestamp = getElapsedGameTime()
+
+	construct(Telegraph sender, Telegraph receiver, int msgType)
+		this.sender = sender
+		this.receiver = receiver
+		this.messageType = msgType
+		

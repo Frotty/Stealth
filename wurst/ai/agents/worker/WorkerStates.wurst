@@ -1,0 +1,103 @@
+package WorkerStates
+import State
+import MapBounds
+import TerrainUtils
+import TypeCasting
+import ClosureForGroups
+
+public let DECIDE_STATE = new DecideWorkerState()
+public let SEARCH_WORK_STATE = new SearchWorkWorkerState()
+public let WORK_STATE = new WorkingWorkerState()
+
+public class DecideWorkerState implements State
+
+	override function enter(Agent e)
+		e.setStatus("Idle")
+	override function update(Agent e)
+		decideAction(e)
+	override function exit(Agent e)
+	override function onMessage(Agent e, Telegram msg) returns boolean
+		return true
+
+	function decideAction(Agent e)
+		if e.energy < 31
+			// Get food
+		else
+			// Start working
+			e.behaviour.changeState(SEARCH_WORK_STATE)
+
+public class SearchWorkWorkerState implements State
+	override function enter(Agent e)
+		findWorkLocation(e)
+
+	vec2 avgPos = ZERO2
+	override function update(Agent e)
+		if (OrderId2String(e.actor.getCurrentOrder()) != "harvest" 
+			and OrderId2String(e.actor.getCurrentOrder()) != "resumeharvesting" 
+			and OrderId2String(e.actor.getCurrentOrder()) != "move")
+			
+			if not findWorkLocation(e)
+				avgPos = ZERO2
+				forUnitsInRange(e.getPos().toVec2(), 350, (unit u) -> begin
+					if u.getEntity() instanceof Agent
+						let agt = u.getEntity() castTo Agent
+						if agt.behaviour.isInState(WORK_STATE)
+							avgPos += (u.getPos()+agt.getPos().toVec2())*0.5
+				end)
+				if avgPos != ZERO2
+					e.actor.issuePointOrder("move", avgPos)
+				else
+					for i = 0 to 6
+						avgPos = e.getPos().toVec2().polarOffset(e.actor.getFacingAngle()+(i*40.).asAngleDegrees(), 128)
+						if isTerrainWalkable(avgPos.x, avgPos.y)
+							e.actor.issuePointOrder("move", avgPos)
+							return
+
+	override function exit(Agent e)
+	override function onMessage(Agent e, Telegram msg) returns boolean
+		return false	
+
+public class WorkingWorkerState implements State
+	override function enter(Agent e)
+		e.setStatus("Working")
+
+	override function update(Agent e)
+
+	override function exit(Agent e)
+	override function onMessage(Agent e, Telegram msg) returns boolean
+		if msg instanceof OrderTelegram
+			let ot = msg castTo OrderTelegram
+			print("on order msg " + ot.order)
+			switch ot.order
+				case "resumeharvesting"
+					print("orderunit: " + GetOrderTargetUnit().getName())
+					return true
+		return false
+
+function findWorkLocation(Agent e) returns boolean
+	return findNearbyTree(e)
+
+function findNearbyTree(Agent e) returns boolean
+	let epos = e.getPos().toVec2()
+	let treeList = new LinkedList<destructable>()
+	
+	forDestructablesInRect(boundRect, (destructable ed) -> begin
+		if ed.getTypeId() == 'VTlt'
+			let dist = epos.distanceToSq(ed.getPos())
+			if  dist < 750*750
+				treeList.add(ed)
+
+
+	end)
+	var result = false
+	if treeList.getSize() > 0
+		// Nearby tree was found
+		treeList.shuffle()
+		e.actor.issueTargetOrder("smart", treeList.pop())
+		e.behaviour.changeState(WORK_STATE)
+		result = true
+	else
+		
+
+	destroy treeList
+	return result

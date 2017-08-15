@@ -1,0 +1,10 @@
+package WorkerAgent
+import Agent
+import WorkerGlobalStates
+import WorkerStates
+
+
+public class WorkerAgent extends Agent
+
+	construct(unit existing)
+		super(existing, new GlobalWorkerState(), DECIDE_STATE)

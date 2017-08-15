@@ -1,0 +1,48 @@
+package WorkerGlobalStates
+import State
+import WorkerStates
+import ClosureForGroups
+import Assets
+
+enum ViewRange
+	WIDE
+	NARROW
+
+class OnViewTelegram extends Telegram
+	Entity e
+	ViewRange viewRange
+
+	construct(Telegraph originator, Entity e, ViewRange viewRange)
+		super(originator, originator, 0)
+		this.e = e
+		this.viewRange = viewRange
+
+
+public class GlobalWorkerState implements State
+	var wideAngle = 270.
+	var narrowAngle = 120.
+	var viewRadius = 178.
+
+	override function enter(Agent e)
+	override function update(Agent e)
+		e.energy -= 0.25
+		if e.energy < 10
+			e.actor.damageTarget(e.actor, 25)
+			e.energy = 12.5
+			flashEffect(Other.bloodimpact, e.getPos())
+			e.behaviour.changeState(DECIDE_STATE)
+
+	override function exit(Agent e)
+	override function onMessage(Agent e, Telegram msg) returns boolean
+		return true
+
+	function checkView(Agent e)
+		let epos = e.getPos().toVec2()
+		forUnitsInRange(epos, viewRadius, (unit u) -> begin
+			if u.getEntity() != null
+				let angle = (epos.angleTo(u.getEntity().getPos().toVec2()) - e.actor.getFacingAngle()).degrees().abs() * 2.
+				if angle < narrowAngle
+					e.behaviour.handleMessage(new OnViewTelegram(e.behaviour, u.getEntity(), ViewRange.NARROW))
+				else if angle < wideAngle
+					e.behaviour.handleMessage(new OnViewTelegram(e.behaviour, u.getEntity(), ViewRange.WIDE))
+		end)

@@ -1,0 +1,54 @@
+package State
+import public Agent
+import public Telegram
+import ClosureForGroups
+import LastOrder
+import TerrainUtils
+
+public interface State
+	function enter(Agent e)
+	function update(Agent e)
+	function exit(Agent e)
+	function onMessage(Agent e, Telegram msg) returns boolean
+
+public class WanderState implements State
+	vec2 averagePos = ZERO2
+	angle averageFacing = angle(0)
+	int count = 0
+	int sleepcount = 0
+	override function enter(Agent e)
+	override function update(Agent e)
+		if (e.actor.getCurrentOrder() != OrderId("move") and e.actor.getCurrentOrder() != OrderId("attack") and e.actor.getCurrentOrder() != OrderId("smart")) or e.actor.getLastOrder().prev.orderPosition.distanceToSq(e.getPos().toVec2()) <= 48*48
+			let epos = e.getPos().toVec2()
+			count = 0
+			averagePos = vec2(GetRandomReal(-128, 128),GetRandomReal(-128, 128))
+			averageFacing = angle(0)
+			forUnitsInRange(e.getPos().toVec2(), 256, (unit u) -> begin
+				let neighbour = u.getEntity()
+				if neighbour instanceof Agent and (epos.angleTo(neighbour.getPos().toVec2()).degrees() - e.actor.getFacing()).abs() < 140 
+					count++
+					averagePos += (neighbour.getPos().toVec2()+epos)*0.5
+					averageFacing += (neighbour castTo Agent).actor.getFacingAngle()
+			end)
+			if count > 0
+				averagePos *= (1/count)
+				averageFacing *= (1/count)
+				var i = 0
+				averagePos = averagePos.polarOffset(averageFacing + (i*90.).fromDeg(), 128)
+				while not isTerrainWalkable(averagePos.x, averagePos.y) and i < 4
+					i++
+					averagePos = averagePos.polarOffset(averageFacing + (i*90.).fromDeg(), 128)
+				e.actor.issuePointOrder("move", averagePos)
+			else
+				var tpos = epos.polarOffset(e.actor.getFacingAngle(), 128)
+				var i = 0
+				while not isTerrainWalkable(tpos.x, tpos.y) and i < 4
+					i++
+					tpos = epos.polarOffset(e.actor.getFacingAngle() + (i*90.).fromDeg(), 128)
+
+				e.actor.issuePointOrder("move", tpos)
+
+	override function exit(Agent e)
+
+	function onMessage(Agent e, Telegram msg) returns boolean
+		return true

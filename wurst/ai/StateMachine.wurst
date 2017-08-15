@@ -1,0 +1,51 @@
+package StateMachine
+import public State
+
+public class StateMachine implements Telegraph
+	protected Agent owner
+	protected State currentState
+	protected State previousState
+	protected State globalState
+
+	construct(Agent owner, State globalState, State currentState)
+		this.owner = owner
+		this.globalState = globalState
+		this.currentState = currentState
+		globalState.enter(owner)
+		currentState.enter(owner)
+
+	function update()
+		if globalState != null
+			globalState.update(owner)
+		if currentState != null
+			currentState.update(owner)
+
+	function changeState(State newState)
+		previousState = currentState
+		if currentState != null
+			currentState.exit(owner)
+		currentState = newState
+		if currentState != null
+			currentState.enter(owner)
+
+	function revertToPreviousState() returns boolean
+		if previousState == null
+			return false
+		changeState(previousState)
+		return true
+
+	function isInState(State s) returns boolean
+		return currentState == s
+
+	function handleMessage(Telegram msg) returns boolean
+		var result = false
+		if currentState != null and currentState.onMessage(owner, msg)
+			result = true
+		
+		if not result and globalState != null and globalState.onMessage(owner, msg)
+			result = true
+		
+		destroy msg
+		return result
+
+		

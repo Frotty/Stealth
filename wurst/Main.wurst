@@ -1,0 +1,15 @@
+package Main
+import ClosureTimers
+import State
+import WorkerAgent
+import EntityManagement
+
+function initGame()
+    startEntityLoop()
+    GroupEnumUnitsOfPlayer(ENUM_GROUP, players[0], Filter(() -> GetFilterUnit().getTypeId() == 'hpea'))
+    for u from ENUM_GROUP
+        new WorkerAgent(u)
+
+init
+    print("init main")
+    nullTimer(() -> initGame())
