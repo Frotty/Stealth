@@ -17,7 +17,6 @@ class OnViewTelegram extends Telegram
 		this.e = e
 		this.viewRange = viewRange
 
-
 public class GlobalWorkerState implements State
 	var wideAngle = 270.
 	var narrowAngle = 120.
@@ -25,12 +24,12 @@ public class GlobalWorkerState implements State
 
 	override function enter(Agent e)
 	override function update(Agent e)
-		e.energy -= 0.25
+		e.energy -= 0.2
 		if e.energy < 10
 			e.actor.damageTarget(e.actor, 25)
-			e.energy = 12.5
+			e.energy = 17.5
 			flashEffect(Other.bloodimpact, e.getPos())
-			e.behaviour.changeState(DECIDE_STATE)
+			e.behaviour..changeState(DECIDE_STATE)
 
 	override function exit(Agent e)
 	override function onMessage(Agent e, Telegram msg) returns boolean

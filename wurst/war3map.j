@@ -103,7 +103,7 @@ function CreateCameras takes nothing returns nothing
     call CameraSetupSetField(gg_cam_Camera_001, CAMERA_FIELD_ZOFFSET, 0.0, 0.0)
     call CameraSetupSetField(gg_cam_Camera_001, CAMERA_FIELD_ROTATION, 89.5, 0.0)
     call CameraSetupSetField(gg_cam_Camera_001, CAMERA_FIELD_ANGLE_OF_ATTACK, 277.5, 0.0)
-    call CameraSetupSetField(gg_cam_Camera_001, CAMERA_FIELD_TARGET_DISTANCE, 3536.9, 0.0)
+    call CameraSetupSetField(gg_cam_Camera_001, CAMERA_FIELD_TARGET_DISTANCE, 4536.9, 0.0)
     call CameraSetupSetField(gg_cam_Camera_001, CAMERA_FIELD_ROLL, 0.0, 0.0)
     call CameraSetupSetField(gg_cam_Camera_001, CAMERA_FIELD_FIELD_OF_VIEW, 70.0, 0.0)
     call CameraSetupSetField(gg_cam_Camera_001, CAMERA_FIELD_FARZ, 9999.0, 0.0)

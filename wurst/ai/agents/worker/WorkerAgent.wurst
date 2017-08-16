@@ -8,3 +8,4 @@ public class WorkerAgent extends Agent
 
 	construct(unit existing)
 		super(existing, new GlobalWorkerState(), DECIDE_STATE)
+		energy = GetRandomReal(85, 115)

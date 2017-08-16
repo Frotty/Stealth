@@ -4,8 +4,18 @@ import State
 import WorkerAgent
 import EntityManagement
 
+Entity last = null
 function initGame()
-    startEntityLoop()
+    startEntityLoop(false)
+    print("start agents")
+    doPeriodically(0.03, (CallbackPeriodic cb) -> begin
+        if last == null
+            last = Entity.firstInactive
+        else
+            last.slowUpdate()
+            last = last.next
+
+    end)
     GroupEnumUnitsOfPlayer(ENUM_GROUP, players[0], Filter(() -> GetFilterUnit().getTypeId() == 'hpea'))
     for u from ENUM_GROUP
         new WorkerAgent(u)

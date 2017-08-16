@@ -1,6 +1,7 @@
 package Agent
 import public Entity
 import public initlater StateMachine
+import ClosureTimers
 
 public class OrderTelegram extends Telegram
 	string order
