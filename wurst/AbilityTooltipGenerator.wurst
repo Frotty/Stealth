@@ -52,9 +52,17 @@ public class AbilityTooltipGenerator implements TooltipGenerator
 			error("Maximum titles reached")
 		titles[titleCount] = TITLE_COLOR + title + "|r "
 		values[titleCount] = ""
+		var last = fixValue(lc.run(1))
 		for i = 1 to maxLevel
-			values[titleCount] += fixValue(lc.run(i)) + "/"
-		values[titleCount] = values[titleCount].substring(0, values[titleCount].length() -1)
+			let next = fixValue(lc.run(i))
+			if next != last
+				last = ""
+			values[titleCount] += next + "/"
+		
+		if last != ""
+			values[titleCount].substring(0, values[titleCount].indexOf("/"))
+		else
+			values[titleCount] = values[titleCount].substring(0, values[titleCount].length() -1)
 		titleCount++
 		
 	function addProperty(string title, string value)
