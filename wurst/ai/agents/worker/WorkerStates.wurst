@@ -10,6 +10,8 @@ public let WORK_STATE = new WorkingWorkerState()
 public let SEARCH_FOOD_STATE = new SearchFoodWorkerState()
 public let EAT_FOOD_STATE = new EatFoodWorkerState()
 
+public int PREFERRED_TILE = GetTerrainType(1500, -2600)
+
 public class DecideWorkerState implements State
 
 	override function enter(Agent e)
@@ -55,11 +57,19 @@ public class SearchWorkWorkerState implements State
 					avgPos *= 1./count
 					e.actor.issuePointOrder("move", avgPos)
 				else
-					for i = 0 to 6
-						avgPos = e.getPos().toVec2().polarOffset(e.actor.getFacingAngle()+(i*40.).asAngleDegrees(), GetRandomReal(90, 178))
+					var vPos = ZERO2
+					for i = 0 to 7
+						avgPos = e.getPos().toVec2().polarOffset(e.actor.getFacingAngle()+(i*40.).asAngleDegrees(), GetRandomReal(72, 158))
 						if isTerrainWalkable(avgPos.x, avgPos.y)
-							e.actor.issuePointOrder("move", avgPos)
-							return
+							if vPos == ZERO2
+								vPos = avgPos
+							if GetTerrainType(avgPos.x, avgPos.y) == PREFERRED_TILE
+								e.actor.issuePointOrder("move", avgPos)
+								return
+					if vPos != ZERO2
+						e.actor.issuePointOrder("move", vPos)
+					else
+						e.actor.issuePointOrder("move", avgPos)
 
 	override function exit(Agent e)
 	override function onMessage(Agent e, Telegram msg) returns boolean

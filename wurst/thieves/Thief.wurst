@@ -1,0 +1,8 @@
+package Thief
+import Entity
+import ThiefObjects
+
+class Thief extends UnitEntity
+
+	construct(vec3 pos, player owner)
+		super(createUnit(owner, THIEF_HERO1, pos, angle(0)))

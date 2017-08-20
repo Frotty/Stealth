@@ -1,0 +1,11 @@
+package ThiefObjects
+import HeroPreset
+import ObjectIdGenerator
+
+public int THIEF_HERO1
+
+@objgen
+function genObjects()
+	THIEF_HERO1 = UNIT_ID_GEN.next()
+	if compiletime
+		new HeroPreset(THIEF_HERO1, 'Obla', "Thiev")

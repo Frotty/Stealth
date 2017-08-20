@@ -1,13 +1,25 @@
 package Main
 import ClosureTimers
-import State
+import Player
 import WorkerAgent
 import EntityManagement
 
+@compiletime
+function genObj()
+    callFunctionsWithAnnotation("objgen")
+
 Entity last = null
 function initGame()
+    print("init objects")
+    callFunctionsWithAnnotation("objgen")
+
+    print("init Agents")
+    GroupEnumUnitsOfPlayer(ENUM_GROUP, players[0], Filter(() -> GetFilterUnit().getTypeId() == 'hpea'))
+    for u from ENUM_GROUP
+        new WorkerAgent(u)
+
+    print("start agent loop")
     startEntityLoop(false)
-    print("start agents")
     doPeriodically(0.03, (CallbackPeriodic cb) -> begin
         if last == null
             last = Entity.firstInactive
@@ -16,9 +28,7 @@ function initGame()
             last = last.next
 
     end)
-    GroupEnumUnitsOfPlayer(ENUM_GROUP, players[0], Filter(() -> GetFilterUnit().getTypeId() == 'hpea'))
-    for u from ENUM_GROUP
-        new WorkerAgent(u)
+    
 
 init
     print("init main")
