@@ -1,0 +1,11 @@
+package CasernaTarget
+
+public class CasernaTarget
+    unit u
+
+    int targetted = 1
+
+    int priority = 0
+
+    construct(unit tgt)
+        u = tgt

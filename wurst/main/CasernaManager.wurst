@@ -1,0 +1,28 @@
+package CasernaManager
+
+import Caserna
+import HashMap
+import Militia
+
+public class CasernaManager
+
+    Militia m
+    
+    unit TEST
+
+    HashMap<player, Caserna> casernas = new HashMap<player, Caserna>
+
+    construct(Militia militia, unit T)
+        TEST = T
+        m = militia
+        makeCaserna(Player(0), createUnit(Player(0), 'hfoo', vec2(-2930, -2360), angle(0)))
+
+    function makeCaserna(player p, unit cunit)
+        casernas.put(p, new Caserna(m, p, cunit, TEST))
+
+    function update()
+        int i = 0
+        while i < 12
+            if casernas.has(Player(i))
+                casernas.get(Player(i)).update()
+            i++

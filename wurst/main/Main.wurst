@@ -3,6 +3,11 @@ import ClosureTimers
 import Player
 import WorkerAgent
 import EntityManagement
+import Militia
+import MoraleSystem
+import Soldier
+import CasernaManager
+import PotentialVec
 
 @compiletime
 function genObj()
@@ -19,16 +24,50 @@ function initGame()
         new WorkerAgent(u)
 
     print("start agent loop")
-    startEntityLoop(false)
+    startEntityLoop()
     doPeriodically(0.03, (CallbackPeriodic cb) -> begin
         if last == null
             last = Entity.firstInactive
         else
             last.slowUpdate()
             last = last.next
-
     end)
-    
+
+    // BMOON STUFF
+
+    print("initialize BMOON Test section")
+
+    //you can play around with the shade's sight and how soldiers react to transformation
+    createUnit(Player(0), 'ushd', vec2(-5000, 5000), angle(0))
+    unit u2 = createUnit(Player(1), 'edoc', vec2(-5000, 5000), angle(0))
+
+    doAfter(10, () -> begin
+        u2.issueImmediateOrder("bearform")
+    end)
+
+    doAfter(15, () -> begin
+        u2.issueImmediateOrder("unbearform")
+    end)
+    //endplayaround
+
+
+    print("initialize Militia")
+    Militia militia = new Militia()
+    CasernaManager cmanager = new CasernaManager(militia, u2 /*test argument, should only have 1 argument (militia)*/) //atm soldiers always target u2. System for marking enemies somewhat in place already, still need to link marking to a targetted ability though
+
+    doPeriodically(0.5, (CallbackPeriodic cb) -> begin
+        militia.updateSlow()
+    end)
+
+    doPeriodically(0.03, (CallbackPeriodic cb) -> begin
+        militia.updateFast()
+        cmanager.update()
+    end)
+
+    doPeriodically(3, (CallbackPeriodic cb) -> begin
+        destroy new PotentialVec(500, 8, vec2(-5000, 5000))
+    end)
+
 
 init
     print("init main")

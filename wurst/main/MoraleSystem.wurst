@@ -1,0 +1,23 @@
+package MoraleSystem
+
+public class MoraleSystem
+
+    int maxMorale = 200
+    int minMorale = 0
+    int morale = 140
+
+    int percent
+
+    leaderboard ldb
+
+    function addMorale(int mor)
+        morale = max(minMorale, min(maxMorale, morale + mor))
+
+    construct()
+        ldb = CreateLeaderboard()
+        LeaderboardAddItem(ldb, "Morale", 0, Player(0))
+        LeaderboardDisplay(ldb, true)
+
+    function update()
+        percent = (morale/maxMorale).round()
+        LeaderboardSetPlayerItemValueBJ(Player(0), ldb, percent)

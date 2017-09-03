@@ -1,0 +1,139 @@
+package Caserna
+
+import Militia
+import LinkedList
+import CasernaTarget
+import Soldier
+
+public class Caserna
+
+    int id = 'h001'
+
+    unit casernaUnit
+
+    LinkedList<CasernaTarget> targets = new LinkedList<CasernaTarget>
+    
+    player p
+
+    texttag tag
+
+    Militia m
+
+    real productionNeeds = 2000
+    real productionHas = 0
+
+    real productionMax = 10000
+
+    real production = 9
+
+    construct(Militia militia, player owner, unit cunit, unit TEST)
+        m = militia
+        p = owner
+        casernaUnit = cunit
+        targets.add(new CasernaTarget(TEST))
+        createTags()
+
+    function createSoldier(unit target)
+        Soldier s = m.makeSoldier(id, target.getPos(), p, target)
+        for CasernaTarget tgt in targets
+            if target == tgt.u
+                tgt.targetted++
+                return
+        targets.add(new CasernaTarget(target))
+
+    function remSoldier(unit target)
+        for CasernaTarget tgt in targets
+            if target == tgt.u
+                tgt.targetted--
+                return
+
+    function changeSpawnType(int unitID)
+        id = unitID
+        switch unitID
+            case 'h000'
+                productionNeeds = 1000
+            case 'h001'
+                productionNeeds = 2000
+            case 'h002'
+                productionNeeds = 1500
+            case 'h003'
+                productionNeeds = 2000
+            case 'h004'
+                productionNeeds = 3500
+            case 'h005'
+                productionNeeds = 2500
+
+    function getPriorityTarget() returns unit
+        unit ret = null
+        int priority = 0
+        int targetnumber = 999999
+        for CasernaTarget tgt in targets
+            if (tgt.priority > priority)
+                ret = tgt.u
+                priority = tgt.priority
+                targetnumber = tgt.targetted
+            else if tgt.targetted < targetnumber and tgt.priority == priority
+                ret = tgt.u
+                targetnumber = tgt.targetted
+
+        return ret
+
+    function cleanTargets()
+        LinkedList<CasernaTarget> toRemove = new LinkedList<CasernaTarget>
+        for CasernaTarget tgt in targets
+            if not tgt.u.isAlive()
+                toRemove.add(tgt)
+        for CasernaTarget tgt in toRemove
+            targets.remove(tgt)
+        destroy toRemove
+
+    function update()
+        int i = (((productionNeeds - productionHas)/productionNeeds)*255).round()
+        setTags(i)
+        productionHas = min(productionMax, productionHas + production)
+        if productionHas >= productionNeeds and targets.getSize() != 0
+            createSoldier(getPriorityTarget())
+            productionHas -= productionNeeds
+            productionNeeds = 1000000
+
+
+    function createTags()
+        tag = CreateTextTag()
+        tag.setText(getTextTag1(), 10)
+        tag.setPermanent(true)
+        tag.setVisibility(true)
+
+    function setTags(int col)
+        string s = getTextTag1()
+        int percent = ((2 - ((col + 255)/255))  * 100).round()
+
+        s += " "
+        s += percent.toString()
+        s += "%"
+
+        tag.setText(s, 10)
+        tag.setPos(casernaUnit.getPos().x, casernaUnit.getPos().y + 40, 0)
+        tag.setColor(col, 255 - col, 0, 255)
+        if col < 0
+            tag.setColor(0, 255 + col, -col, 255)
+            if col < -170
+                tag.setColor(0, 75, 170, 255)
+
+    function getTextTag1() returns string
+        string s = "["
+        real r = 1 - ((productionNeeds - productionHas)/productionNeeds)
+        int i = 0
+        while r > 0.025
+            i++
+            r -= 0.05
+            s += "I"
+            if i == 20
+                break
+
+        while i != 20
+            s += " "
+            i++
+            
+        s += "]"
+
+        return s

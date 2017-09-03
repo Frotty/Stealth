@@ -1,0 +1,20 @@
+package Vec2
+
+public class Vec2
+    vec2 vec
+
+    boolean walkable = false
+
+    real weight
+
+    construct(vec2 v)
+        vec = v
+
+    construct(real x, real y)
+        vec = vec2(x, y)
+    
+    function get() returns vec2
+        return vec
+
+    function isWalkable() returns boolean
+        return walkable

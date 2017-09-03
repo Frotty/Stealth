@@ -1,0 +1,68 @@
+package Militia
+import HashMap
+import Soldier
+import LinkedList
+import Vec2
+
+public class Militia
+    LinkedList<Soldier> soldiers = new LinkedList<Soldier>
+
+    LinkedList<Vec2> spawnPoints = new LinkedList<Vec2>
+
+    static HashMap<int, int> maxMilitia = new HashMap<int, int>
+    static HashMap<int, int> currMilitia = new HashMap<int, int>
+
+    construct()
+        addSpawn(vec2(1540, -3700))
+        addSpawn(vec2(6620, -9020))
+        addSpawn(vec2(-2990, -2670))
+
+    function makeSoldier(int id, vec2 where, player p, unit target) returns Soldier
+        if not (maxMilitia.has(id))
+            maxMilitia.put(id, 12)
+            currMilitia.put(id, 0)
+        
+        int max = maxMilitia.get(id)
+        int curr = currMilitia.get(id)
+
+        curr++
+
+        if not curr > max
+            real distance = 999999
+            vec2 ret = vec2(0,0)
+            for Vec2 v in spawnPoints
+                if v.get().distanceTo(where) < distance
+                    distance = v.get().distanceTo(where)
+                    ret = v.get()
+
+            vec2 pos = ret
+            unit u = createUnit(p, id, pos, angle(0))
+            Soldier s = new Soldier(u, pos, 80)
+            soldiers.add(s)
+            currMilitia.put(id, curr)
+            if target != null
+                s.setTarget(target)
+            return s
+
+        return null
+
+    function addSpawn(vec2 v)
+        spawnPoints.add(new Vec2(v))
+
+    function updateSlow()
+        LinkedList<Soldier> toRemove = new LinkedList<Soldier>
+        for Soldier s in soldiers
+            int result = s.updateSlow()
+            if result == 1 or result == 2
+                toRemove.add(s)
+                s.u.remove()
+        
+        for Soldier s in toRemove
+            soldiers.remove(s)
+            destroy s
+
+        destroy toRemove
+
+    function updateFast()
+        for Soldier s in soldiers
+            s.updateFast()

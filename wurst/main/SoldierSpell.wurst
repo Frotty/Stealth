@@ -1,0 +1,13 @@
+package SoldierSpell
+
+public class SoldierSpell
+
+//NOT IMPLEMENTED YET
+
+    real distanceCondition
+    boolean sightCondition
+
+    int cooldown = 0
+    int cooldownBase
+
+    int id

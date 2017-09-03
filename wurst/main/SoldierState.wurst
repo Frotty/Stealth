@@ -1,0 +1,11 @@
+package SoldierState
+
+enum SoldierState
+    ACQUIRE_TARGET //0
+    INVESTIGATE_TARGET //1
+    KILL_TARGET //2
+    RETURN_HOME //3
+    CAST_SPELL //4
+    PATROL //5
+    GO_TO_INVESTIGATE //6
+    ENEMY_DEAD //7

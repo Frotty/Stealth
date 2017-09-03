@@ -1,0 +1,48 @@
+package PotentialVec
+
+import LinkedList
+import Vec2
+
+public class PotentialVec
+
+    ondestroy
+        let itr = field.staticItr()
+        for target from itr
+            destroy itr.remove()
+        destroy field
+
+
+    LinkedList<Vec2> field = new LinkedList<Vec2>
+
+    vec2 home
+
+    construct(real rad, int range, vec2 center)
+        home = center
+        int i = 0
+        real r = 0
+        
+        while i != 12
+
+            int n = 0
+            while n <= range
+                n++
+                real dist = (rad/range)*n
+                real x = Cos(r)*dist
+                real y = Sin(r)*dist
+
+                // want to check if (x, y) is walkable, and set the resulting Vec2's walkable to that boolean, (can you help with that Frotty?)
+                // this class should be a PotentialField of sorts,
+                // to help soldiers find the most open direction to walk towards (further away from the direction they came from)
+                // to create a more natural search pattern
+
+
+                field.add(new Vec2(vec2(home.x + x, home.y + y)))
+
+            r += PI/6
+            i++
+
+        for Vec2 v in field
+            AddSpecialEffect("Abilities\\Spells\\Human\\Feedback\\SpellBreakerAttack.mdl", v.get().x, v.get().y)
+
+            
+            

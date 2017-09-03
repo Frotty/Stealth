@@ -1,0 +1,208 @@
+package Soldier
+
+import SoldierState
+import public Entity
+
+public class Soldier extends UnitEntity
+
+    //Soldiers will seek out an enemy target for as long as seekTime > 0
+    //seekTime slowly decays when defenders dont have vision on target, but slowly goes back up when they do
+    //seekTime will increase faster the closer the militia unit has been to its target (sort of like I RECOGNIZE YOUR FACE)
+    //when losing track of target, soldiers will go to last known position of target (slow seekTime decay during this)
+    //TODO (playing around with PotentialVec): once they have arrived at last known target position, they will start searching around until seekTime is 0 (fast seekTime decay)
+    //a thief that is in thief form (bear form) and seen by defenders will ALWYAS be tracked down
+    //a thief that is in citizen diguise (druid form) will be tracked down, UNLESS he has morphed from thief form to citizen form WHILE unseen by defenders ->
+    // -> in which case he will only be reacquired if he morphs back to thief 
+    //any soldier whose seekTime reaches 0 will return to his caserna
+    //TODO: soldier spells. different soldier types should have different configurations (cost, damage, speed, sightrange, maximum seektime...) but some soldiers should also have unique spells ->
+    // -> for example, the spellbreaker could have an energy-sapping spell/aura, the witch a slow spell, and the knight a charge/temporary speedup ->
+    // -> these spells would be used automatically by checking conditions in SoldierSpell
+
+    //Soldiers are built over time by Casernas (3 on the map, 1 for each defender). Casernas slowly build up production by themselves, and will always produce the active unit type ->
+    // -> which will be able to be switched by the defender controlling the caserna. 
+    //Soldiers will acquire targets using the getPriorityTarget() method in the Caserna class ->
+    // -> which iterates over all targets marked by the caserna's owner and assigns the next target based on how many soldiers are following that target already and the priority of the target which the caserna owner can set
+
+    //This is the semi-engaged gameplay part for defenders. The engaged part will be directly controlling powerful units, and the almost non-engaged part will be controlling checkpoint placement
+
+
+    ondestroy
+        //ondestroy
+
+    unit u
+    unit target = null
+
+    texttag tag
+
+    int state = -1
+
+    real distanceToTarget = 1000
+
+    int seekTime
+    int seekTimeMax
+
+    int targetLost = 0
+
+    vec2 home
+    vec2 suspectLastLocation
+    vec2 suspectLastLocationFinal
+
+    real attackRange = 600
+
+    boolean hunter = false
+
+    construct(unit entity, vec2 h, int stime)
+        super(entity)
+        
+        u = entity
+        home = h
+        seekTime = stime
+        seekTimeMax = stime
+        createTags()
+
+    function setTarget(unit tgt)
+        target = tgt
+        suspectLastLocation = tgt.getPos()
+        hunter = true
+
+    function updateSlow() returns int
+        int origstate = state
+
+        if not (u.isAlive())
+            return 2
+
+        if state == 3 or state == 7
+            if u.getPos().distanceTo(home) < 200
+                return 1
+
+        if target == null
+            return -1
+
+        if IsVisibleToPlayer(target.getX(), target.getY(), u.getOwner())
+            if target.getTypeId() == 'edcm' or (targetLost == 0)
+                state = 1
+                int seekRegen = 1
+                if distanceToTarget < 1000
+                    seekRegen = 2
+                    if distanceToTarget < 500
+                        seekRegen = 3
+                        if distanceToTarget < 250
+                            seekRegen = 4
+                
+                seekTime = min(seekTime + seekRegen, seekTimeMax)
+
+            if state == 1 and SquareRoot((Pow((u.getX() - target.getX()), 2)) + (Pow((u.getY() - target.getY()), 2))) < attackRange
+                state = 2
+
+        else if state != 0
+            state = 6
+
+        if not target.isAlive()
+            state = 7
+
+
+        if state == 0 or state == 6
+            if state == 0
+                seekTime -= 2
+            else if state == 6
+                seekTime--
+            if (seekTime % 5 == 0)
+                print("seekTime")
+                print(seekTime)
+            if (seekTime <= 0)
+                state = 3
+            if targetLost == 0
+                if target.getTypeId() == 'edcm'
+                    targetLost = 1
+            else if targetLost == 1
+                if target.getTypeId() == 'edoc'
+                    targetLost = 2
+                    state = 6
+            
+        if (state != origstate)
+            if state != 0 and state != 6  
+                targetLost = 0
+
+            switch state
+                case 0
+                    talkText("arrived at investigation point")
+                case 1
+                    talkText("let's go")
+                    u.issueTargetOrder("attack", target)
+                case 2
+                    u.issueTargetOrder("attack", target)
+                    talkText("die, traitor!")
+                case 3
+                    u.issuePointOrder("move", home)
+                    talkText("lost the target. returning home.")
+                    tag.destr()
+                    target = null
+                case 6
+                    suspectLastLocationFinal = suspectLastLocation
+                    u.issuePointOrder("move", suspectLastLocationFinal)
+                    talkText("we've lost the suspect, investigating.")
+                case 7
+                    u.issuePointOrder("move", home)
+                    talkText("target terminated. we're done.")
+                    tag.destr()
+                    target = null
+
+
+        suspectLastLocation = target.getPos()
+
+        if state == 6
+            if u.getPos().distanceTo(suspectLastLocationFinal) < 100
+                state = 0
+    
+        print(state)
+
+        return 0
+
+    function updateFast()
+        int color = (((seekTimeMax - seekTime)/seekTimeMax)*255).round()
+
+        u.setVertexColor(255, 255 - color, 255 - color, 255)
+        updateDistanceToVisibleTarget()
+        setTags(color)
+
+    function updateDistanceToVisibleTarget()
+        if IsVisibleToPlayer(target.getX(), target.getY(), u.getOwner())
+            distanceToTarget = min(distanceToTarget, u.getPos().distanceTo(target.getPos()))
+
+    function createTags()
+        tag = CreateTextTag()
+        tag.setText(getTextTag1(), 10)
+        tag.setPermanent(true)
+        tag.setVisibility(true)
+
+    function setTags(int col)
+        tag.setText(getTextTag1(), 10)
+        tag.setPos(u.getPos().x, u.getPos().y + 40, 0)
+        tag.setColor(col, 255 - col, 0, 255)
+
+    function getTextTag1() returns string
+        string s = "["
+        real r = 1 - ((seekTimeMax - seekTime)/seekTimeMax)
+        int i = 0
+        while r > 0.05
+            i++
+            r -= 0.1
+            s += "I"
+
+        while i != 10
+            s += " "
+            i++
+            
+        s += "]"
+
+        return s
+      
+    function talkText(string s)
+            texttag t = CreateTextTag()
+            t.setText(s, 10)
+            t.setPos(u.getPos().x, u.getPos().y, 0)
+            t.setVelocity(0.01, 0.02)
+            t.setPermanent(false)
+            t.setFadepoint(1.2)
+            t.setLifespan(2)
+            t.setVisibility(true)
